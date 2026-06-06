@@ -1,9 +1,12 @@
 const { getPool, sql } = require('../db');
 const { sendMail } = require('../mailer');
 const path = require('path');
+const sendResponse = require('../utils/responseHandler');
 
 // POST /api/contact  — mirrors ContactUs.aspx.cs submitButton_Click
 async function submitContact(req, res) {
+  /* #swagger.tags = ['Public Forms']
+     #swagger.summary = 'Submit a contact form' */
   const { name, emailId, contactNo, companyName, designation } = req.body;
   try {
     const pool = await getPool();
@@ -20,14 +23,16 @@ async function submitContact(req, res) {
       html: `From ContactUs Form<br>Name: ${name}<br>Email Id: ${emailId}<br>Contact No: ${contactNo}<br>Company Name: ${companyName}<br>Designation: ${designation}`,
     });
 
-    res.json({ message: 'Thank You, we will contact you soon!' });
+    sendResponse(res, 200, true, 'Thank You, we will contact you soon!');
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendResponse(res, 500, false, 'Internal Server Error', null, err.message);
   }
 }
 
 // POST /api/enquiry  — mirrors Enquiry.aspx.cs submitButton_Click (with file upload via multer)
 async function submitEnquiry(req, res) {
+  /* #swagger.tags = ['Public Forms']
+     #swagger.summary = 'Submit a product enquiry' */
   const {
     name, emailId, contactNo, companyName, productName,
     size, temperature, application, media, pressure,
@@ -66,16 +71,18 @@ async function submitEnquiry(req, res) {
       attachments,
     });
 
-    res.json({ message: 'Thank You, we will contact you soon!' });
+    sendResponse(res, 200, true, 'Thank You, we will contact you soon!');
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendResponse(res, 500, false, 'Internal Server Error', null, err.message);
   }
 }
 
 // POST /api/newsletter/subscribe  — mirrors UserMaster.Master subscribeLinkButton_Click
 async function subscribeNewsletter(req, res) {
+  /* #swagger.tags = ['Public Forms']
+     #swagger.summary = 'Subscribe to newsletter' */
   const { emailId } = req.body;
-  if (!emailId) return res.status(400).json({ error: 'Email is required' });
+  if (!emailId) return sendResponse(res, 400, false, 'Email is required', null, 'Email is required');
   try {
     const pool = await getPool();
     // Check if already subscribed
@@ -83,14 +90,14 @@ async function subscribeNewsletter(req, res) {
       .input('EmailId', sql.NVarChar, emailId)
       .query('SELECT * FROM NewsletterMaster WHERE EmailId = @EmailId');
     if (existing.recordset.length > 0) {
-      return res.json({ message: 'Already subscribed!' });
+      return sendResponse(res, 200, true, 'Already subscribed!');
     }
     await pool.request()
       .input('EmailId', sql.NVarChar, emailId)
       .query('INSERT INTO NewsletterMaster (EmailId) VALUES (@EmailId)');
-    res.json({ message: 'Subscribed successfully!' });
+    sendResponse(res, 200, true, 'Subscribed successfully!');
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    sendResponse(res, 500, false, 'Internal Server Error', null, err.message);
   }
 }
 
