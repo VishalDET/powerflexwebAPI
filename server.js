@@ -17,9 +17,18 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 
 // ── CORS Middleware ────────────────────────────────────────────────
-const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000', 'https://www.powerflexind.com/', 'http://www.powerflexind.com/'];
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:3000',
+  'https://www.powerflexind.com',
+  'https://powerflexind.com',
+  'http://www.powerflexind.com',
+  'http://powerflexind.com'
+];
 const configuredOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/$/, ''))
   : [];
 const allowedOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
@@ -27,10 +36,9 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (!origin) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-  } else if (allowedOrigins.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
-    res.setHeader('Access-Control-Allow-Origin', origin); // fallback to allow origin
+    // Dynamically allow the origin
+    res.setHeader('Access-Control-Allow-Origin', origin);
   }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
