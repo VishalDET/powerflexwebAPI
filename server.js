@@ -17,9 +17,9 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 
 // ── CORS Middleware ────────────────────────────────────────────────
-const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
-const configuredOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
+const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000', 'https://www.powerflexind.com/', 'http://www.powerflexind.com/'];
+const configuredOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [];
 const allowedOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
