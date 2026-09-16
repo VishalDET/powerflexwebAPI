@@ -16,29 +16,32 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────────────
+// ── CORS Middleware ────────────────────────────────────────────────
 const defaultOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
 const configuredOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) 
   : [];
 const allowedOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('CORS policy: Not allowed by CORS'), false);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-};
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  } else if (allowedOrigins.includes(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', origin); // fallback to allow origin
+  }
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
